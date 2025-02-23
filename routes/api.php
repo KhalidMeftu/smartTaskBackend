@@ -34,4 +34,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks/{task}/assign', [TaskController::class, 'assignTask']);
     Route::post('/tasks/{task}/complete', [TaskController::class, 'markTaskComplete']);
     Route::get('/users', [UserController::class, 'listUsers']);
+    Route::post('/enable-2fa', [AuthController::class, 'enable2FA']);
+    Route::post('/disable-2fa', [AuthController::class, 'disable2FA']);
 });

@@ -8,7 +8,7 @@
         "php": "^7.2||^8.1",
         "bacon/bacon-qr-code": "^3.0",
         "beyondcode/laravel-websockets": "^1.14",
-        "darkaonline/l5-swagger": "^8.6",
+        "darkaonline/l5-swagger": "^0.1.0",
         "guzzlehttp/guzzle": "^7.2",
         "kreait/laravel-firebase": "^5.10",
         "laravel/framework": "^10.10",

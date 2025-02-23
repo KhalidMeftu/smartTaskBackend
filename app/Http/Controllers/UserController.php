@@ -10,6 +10,19 @@ class UserController extends Controller
     /**
      * Get a list of all users.
      */
+    
+
+
+     /**
+ * @OA\Get(
+ *     path="/api/users",
+ *     summary="Get All Users",
+ *     tags={"Users"},
+ *     security={{"sanctum":{}}},
+ *     @OA\Response(response=200, description="List of users")
+ * )
+ */
+
     public function listUsers(Request $request)
     {
         /// get all users but exclude the currently authenticated user (optional)
