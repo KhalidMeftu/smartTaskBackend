@@ -7,10 +7,13 @@
     "require": {
         "php": "^7.2||^8.1",
         "beyondcode/laravel-websockets": "^1.14",
+        "darkaonline/l5-swagger": "^8.6",
         "guzzlehttp/guzzle": "^7.2",
+        "kreait/laravel-firebase": "^5.10",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "pragmarx/google2fa": "^8.0",
         "pusher/pusher-php-server": "^7.2"
     },
     "require-dev": {
