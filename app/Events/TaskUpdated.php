@@ -10,16 +10,18 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskUpdated
+class TaskUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+    public $task;
+
 
     /**
      * Create a new event instance.
      */
     public function __construct()
     {
-        //
+        $this->task = $task;
     }
 
     /**
@@ -27,10 +29,15 @@ class TaskUpdated
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): array
+    
+
+    public function broadcastOn()
     {
-        return [
-            new PrivateChannel('channel-name'),
-        ];
+        return new PrivateChannel('tasks.'.$this->task->id);
+    }
+
+    public function broadcastAs()
+    {
+        return 'task.updated';
     }
 }

@@ -20,12 +20,13 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials'],
             ]);
         }
-        /// i need to check user 2fa
+
+        //if 2fa is enabled we need to request the TOTP code
         if ($user->google2fa_secret) {
             return response()->json([
                 'message' => '2FA required',
@@ -33,6 +34,7 @@ class AuthController extends Controller
             ]);
         }
 
+        //or log in user directly
         return response()->json([
             'token' => $user->createToken('auth-token')->plainTextToken
         ]);
@@ -48,12 +50,27 @@ class AuthController extends Controller
         $user = User::find($request->user_id);
         $google2fa = new Google2FA();
 
+        // verify code 
         if (!$google2fa->verifyKey($user->google2fa_secret, $request->totp_code)) {
             return response()->json(['error' => 'Invalid 2FA code'], 401);
         }
 
+        // return token after successful 2FA verification
         return response()->json([
             'token' => $user->createToken('auth-token')->plainTextToken
         ]);
     }
+
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        $user->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json(['message' => 'FCM token updated successfully']);
+    }
+
 }
