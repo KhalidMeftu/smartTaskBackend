@@ -58,4 +58,44 @@ class RegisterController extends Controller
     ], 201);
 }
 
+
+public function registerWithOptionalTwoFactor(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|string|min:6|confirmed',
+        'enable_2fa' => 'boolean'
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+    ]);
+
+    /// if user wants 2FA enabled, generate a 2FA secret key
+    if ($request->enable_2fa) {
+        $google2fa = new \PragmaRX\Google2FA\Google2FA();
+        $secret = $google2fa->generateSecretKey();
+        $user->update(['google2fa_secret' => $secret]);
+
+        $qrCodeUrl = "otpauth://totp/MyApp:{$user->email}?secret={$secret}&issuer=MyApp";
+        $qrCode = base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(200)->generate($qrCodeUrl));
+
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('auth-token')->plainTextToken,
+            'google2fa_qr' => "data:image/svg+xml;base64," . $qrCode,
+            'google2fa_secret' => $secret,
+        ], 201);
+    }
+
+    return response()->json([
+        'user' => $user,
+        'token' => $user->createToken('auth-token')->plainTextToken
+    ], 201);
+}
+
+
 }

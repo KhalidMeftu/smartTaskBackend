@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,4 +33,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update-fcm-token', [AuthController::class, 'updateFcmToken']);
     Route::post('/tasks/{task}/assign', [TaskController::class, 'assignTask']);
     Route::post('/tasks/{task}/complete', [TaskController::class, 'markTaskComplete']);
+    Route::get('/users', [UserController::class, 'listUsers']);
 });
