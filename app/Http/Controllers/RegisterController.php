@@ -12,26 +12,7 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 class RegisterController extends Controller
 {
     
-/**
- * @OA\Post(
- *     path="/api/register",
- *     summary="User Registration",
- *     tags={"Authentication"},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             required={"name", "email", "password", "password_confirmation"},
- *             @OA\Property(property="name", type="string", example="John Doe"),
- *             @OA\Property(property="email", type="string", example="user@example.com"),
- *             @OA\Property(property="password", type="string", example="password123"),
- *             @OA\Property(property="password_confirmation", type="string", example="password123"),
- *             @OA\Property(property="enable_2fa", type="boolean", example=true)
- *         )
- *     ),
- *     @OA\Response(response=201, description="User registered successfully"),
- *     @OA\Response(response=422, description="Validation error")
- * )
- */
+
     public function register(Request $request)
     {
         $request->validate([
