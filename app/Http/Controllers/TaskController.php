@@ -65,6 +65,7 @@ public function index()
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
+                'deadline' => 'nullable|date',
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after_or_equal:start_date',
                 'user_ids' => 'required|array',
@@ -75,20 +76,23 @@ public function index()
                 \DB::beginTransaction();
         
                 // Create the task
-                $task = Tasks::create([
+                $task = Task::create([
                     'title' => $validatedData['title'],
                     'description' => $validatedData['description'] ?? null,
                     'deadline' => $validatedData['deadline'] ?? null,
-                    'color' => $validatedData['color'] ?? null,
+                    'status' => 'pending',
+                    'start_date' => $validatedData['start_date'] ?? null,
+                    'end_date' => $validatedData['end_date'] ?? null,
                     'created_by' => Auth::id(),
                 ]);
         
-                // attach assigned users
+                // Attach assigned users
                 $task->users()->sync($validatedData['user_ids']);
         
                 \DB::commit();
         
-                broadcast(new TaskUpdated($task))->toOthers();
+                // Notify assigned users
+                broadcast(new TaskCreated($task))->toOthers();
         
                 return response()->json([
                     'message' => 'Task created successfully',
@@ -303,6 +307,29 @@ public function destroy($id)
 
         return response()->json(['message' => 'Task marked as completed']);
     }
+
+    public function updateStatus(Request $request, Task $task)
+{
+    $validatedData = $request->validate([
+        'status' => 'required|in:pending,inprogress,completed',
+    ]);
+
+    // Ensure only assigned users can update the status
+    if (!$task->users->contains(Auth::id())) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $task->update(['status' => $validatedData['status']]);
+
+    // Broadcast the status update event
+    broadcast(new TaskStatusUpdated($task))->toOthers();
+
+    return response()->json([
+        'message' => 'Task status updated successfully',
+        'task' => $task
+    ]);
+}
+
 
 
 }
