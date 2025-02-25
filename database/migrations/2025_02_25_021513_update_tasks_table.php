@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::table('tasks', function (Blueprint $table) {
             $table->dropColumn('color');
+            $table->enum('status', ['pending', 'inprogress', 'completed'])->default('pending');
             $table->timestamp('start_date')->nullable(); 
             $table->timestamp('end_date')->nullable();
         });
