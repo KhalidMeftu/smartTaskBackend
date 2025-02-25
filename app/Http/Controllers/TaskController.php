@@ -65,8 +65,8 @@ public function index()
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'deadline' => 'nullable|date',
-                'color' => 'nullable|string',
+                'start_date' => 'nullable|date',
+                'end_date' => 'nullable|date|after_or_equal:start_date',
                 'user_ids' => 'required|array',
                 'user_ids.*' => 'exists:users,id',
             ]);
@@ -132,13 +132,13 @@ public function index()
     public function update(Request $request, Tasks $task)
     {
         $request->validate([
-            'title' => 'string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'deadline' => 'nullable|date',
-            'color' => 'nullable|string'
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
-        $task->update($request->only('title', 'description', 'deadline', 'color'));
+        $task->update($request->only('title', 'description', 'start_date', 'end_date'));
 
         //broadcast to assigned users
         broadcast(new TaskUpdated($task))->toOthers();
