@@ -26,7 +26,7 @@ class TaskStatusUpdated implements ShouldBroadcast
     public function broadcastOn()
     {
         return collect($this->assignedUsers)->map(function ($userId) {
-            return new PrivateChannel('tasks.user.' . $userId);
+            return new PrivateChannel('tasksstatusupdate.user.' . $userId);
         })->toArray();
     }
 

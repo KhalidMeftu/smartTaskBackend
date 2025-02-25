@@ -16,3 +16,24 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+
+Broadcast::channel('task.create.user.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId; // Allow only the authenticated user
+});
+
+Broadcast::channel('tasksstatusupdate.user.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+Broadcast::channel('usertasks.update.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+Broadcast::channel('userdelete.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+Broadcast::channel('useredit.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});

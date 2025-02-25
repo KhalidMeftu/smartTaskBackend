@@ -26,7 +26,7 @@ class TaskEditing implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return collect($this->userIds)->map(fn($id) => new PrivateChannel("user.{$id}"))->toArray();
+        return collect($this->userIds)->map(fn($id) => new PrivateChannel("useredit.{$id}"))->toArray();
     }
 
     public function broadcastAs()

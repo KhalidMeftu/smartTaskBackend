@@ -24,7 +24,7 @@ class TaskDeleted implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return collect($this->userIds)->map(fn($id) => new PrivateChannel("user.{$id}"))->toArray();
+        return collect($this->userIds)->map(fn($id) => new PrivateChannel("userdelete.{$id}"))->toArray();
     }
 
     public function broadcastAs()
