@@ -30,6 +30,8 @@ class UserController extends Controller
                      ->select('id', 'name', 'email')
                      ->get();
 
+                     
+
         return response()->json($users);
     }
 }

@@ -9,18 +9,16 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TaskEditing implements ShouldBroadcast
+class TaskDeleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $taskId;
-    public $username;
-    public $userIds;
+    public $userIds; // ✅ List of users to notify
 
-    public function __construct($taskId, $username, $userIds)
+    public function __construct($taskId, $userIds)
     {
         $this->taskId = $taskId;
-        $this->username = $username;
         $this->userIds = $userIds;
     }
 
@@ -31,6 +29,6 @@ class TaskEditing implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'task.editing';
+        return 'task.deleted';
     }
 }

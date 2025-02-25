@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Task;
+use App\Models\Tasks;
 use App\Events\TaskUpdated;
 use App\Events\TaskEditing;
 use Illuminate\Http\Request;
@@ -16,17 +16,30 @@ class TaskController extends Controller
     
 /**
  * @OA\Get(
- *     path="/api/tasks",
+ *     path="/api/gettasks",
  *     summary="Get User's Tasks",
  *     tags={"Tasks"},
  *     security={{"sanctum":{}}},
  *     @OA\Response(response=200, description="List of tasks")
  * )
  */
-    public function index()
-    {
-        return response()->json(Auth::user()->tasks);
-    }
+public function index()
+{
+    $user = Auth::user();
+
+    $tasks = Tasks::where('created_by', $user->id)
+        ->orWhereHas('users', function ($query) use ($user) {
+            $query->where('user_id', $user->id); 
+        })
+        ->with('users')
+        ->get();
+
+    return response()->json([
+        'tasks' => $tasks
+    ]);
+}
+
+
 
     ///create task 
     /** @OA\Post(
@@ -47,27 +60,47 @@ class TaskController extends Controller
         *     @OA\Response(response=201, description="Task created successfully")
         * )
         */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'deadline' => 'nullable|date',
-            'color' => 'nullable|string'
-        ]);
-
-        $task = Task::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'deadline' => $request->deadline,
-            'color' => $request->color,
-            'created_by' => Auth::id()
-        ]);
-
-        broadcast(new TaskUpdated($task))->toOthers();
-
-        return response()->json($task);
-    }
+        public function store(Request $request)
+        {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'deadline' => 'nullable|date',
+                'color' => 'nullable|string',
+                'user_ids' => 'required|array', // ✅ Ensure user_ids are required
+                'user_ids.*' => 'exists:users,id',
+            ]);
+        
+            try {
+                \DB::beginTransaction(); // ✅ Start transaction to prevent partial saves
+        
+                // Create the task
+                $task = Tasks::create([
+                    'title' => $validatedData['title'],
+                    'description' => $validatedData['description'] ?? null,
+                    'deadline' => $validatedData['deadline'] ?? null,
+                    'color' => $validatedData['color'] ?? null,
+                    'created_by' => Auth::id(),
+                ]);
+        
+                // Attach assigned users
+                $task->users()->sync($validatedData['user_ids']);
+        
+                \DB::commit(); // ✅ Commit the transaction
+        
+                broadcast(new TaskUpdated($task))->toOthers();
+        
+                return response()->json([
+                    'message' => 'Task created successfully',
+                    'task' => $task->load('users'),
+                ], 201);
+            } catch (\Exception $e) {
+                \DB::rollBack(); // ✅ Rollback if anything fails
+                \Log::error("Task creation failed: " . $e->getMessage());
+                return response()->json(['error' => 'Failed to create task'], 500);
+            }
+        }
+        
 
     //update
     /**
@@ -96,7 +129,7 @@ class TaskController extends Controller
  *     @OA\Response(response=404, description="Task not found")
  * )
  */
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Tasks $task)
     {
         $request->validate([
             'title' => 'string|max:255',
@@ -130,14 +163,24 @@ class TaskController extends Controller
  *     @OA\Response(response=404, description="Task not found")
  * )
  */
-    public function destroy(Task $task)
-    {
-        $task->delete();
+public function destroy($id)
+{
+    $task = Tasks::with('assignedUsers')->find($id);
 
-        broadcast(new TaskUpdated($task))->toOthers();
-
-        return response()->json(['message' => 'Task deleted']);
+    if (!$task) {
+        return response()->json(['message' => 'Task not found'], 404);
     }
+
+    $taskId = $task->id;
+    $userIds = $task->assignedUsers->pluck('id')->toArray();
+
+    $task->delete();
+
+    broadcast(new TaskDeleted($taskId, $userIds))->toOthers();
+
+    return response()->json(['message' => 'Task deleted']);
+}
+
     // send notifiaction to users user is editing task
     /**
  * @OA\Post(
@@ -155,12 +198,29 @@ class TaskController extends Controller
  *     @OA\Response(response=200, description="Editing notification sent")
  * )
  */
-    public function editingTask(Task $task)
+    public function editingTask(Tasks $task)
     {
         broadcast(new TaskEditing(Auth::user(), $task))->toOthers();
 
         return response()->json(['message' => 'Editing notification sent']);
     }
+
+    public function editing(Request $request, $id)
+    {
+        $task = Tasks::with('users')->find($id); // ✅ Change 'assignedUsers' to 'users'
+
+    if (!$task) {
+        return response()->json(['message' => 'Task not found'], 404);
+    }
+
+    $username = $request->user()->name ?? 'Unknown User';
+    $userIds = $task->users->pluck('id')->toArray(); // ✅ Change 'assignedUsers' to 'users'
+
+    broadcast(new TaskEditing($task->id, $username, $userIds))->toOthers();
+
+    return response()->json(['message' => "$username is editing the task"]);
+}
+    
 
     /**
  * @OA\Post(
@@ -184,7 +244,7 @@ class TaskController extends Controller
  *     @OA\Response(response=200, description="Users assigned successfully")
  * )
  */
-    public function assignTask(Request $request, Task $task)
+    public function assignTask(Request $request, Tasks $task)
     {
         $request->validate([
             'user_ids' => 'required|array',
@@ -231,7 +291,7 @@ class TaskController extends Controller
  *     @OA\Response(response=200, description="Task marked as completed")
  * )
  */
-    public function markTaskComplete(Task $task)
+    public function markTaskComplete(Tasks $task)
     {
         $task->update(['status' => 'completed']);
 
