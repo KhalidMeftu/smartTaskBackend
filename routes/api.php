@@ -6,6 +6,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserPreferenceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,5 +38,7 @@ Route::middleware('auth:sanctum','throttle:60,1')->group(function () {
     Route::post('/enable-2fa', [AuthController::class, 'enable2FA']);
     Route::post('/disable-2fa', [AuthController::class, 'disable2FA']);
     Route::post('/tasks/{id}/editing', [TaskController::class, 'editing']);
+    Route::get('/user/preferences', [UserPreferenceController::class, 'getUserPreferences']);
+    Route::post('/user/preferences', [UserPreferenceController::class, 'updateUserPreferences']);
 
 });
