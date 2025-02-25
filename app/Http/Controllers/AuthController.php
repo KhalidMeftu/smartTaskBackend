@@ -55,6 +55,7 @@ class AuthController extends Controller
         }
 
         $preferences = $user->preferences()->first();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         //or log in user directly
         return response()->json([

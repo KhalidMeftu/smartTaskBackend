@@ -19,7 +19,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 
 Broadcast::channel('task.create.user.{userId}', function ($user, $userId) {
-    return (int) $user->id === (int) $userId; // Allow only the authenticated user
+    return (int) $user->id === (int) $userId;
 });
 
 Broadcast::channel('tasksstatusupdate.user.{userId}', function ($user, $userId) {

@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Task;
+use App\Models\Tasks;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -17,7 +17,7 @@ class TaskCreated implements ShouldBroadcast
     public $task;
     public $assignedUsers;
 
-    public function __construct(Task $task)
+    public function __construct(Tasks $task)
     {
         $this->task = $task;
         $this->assignedUsers = $task->users()->pluck('id')->toArray();

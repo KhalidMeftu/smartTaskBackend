@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Tasks;
 use App\Events\TaskUpdated;
 use App\Events\TaskEditing;
+use App\Events\TaskCreated;
+use App\Events\TaskDeleted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Kreait\Firebase\Factory;
@@ -75,8 +77,8 @@ public function index()
             try {
                 \DB::beginTransaction();
         
-                // Create the task
-                $task = Task::create([
+                /// Create the task
+                $task = Tasks::create([
                     'title' => $validatedData['title'],
                     'description' => $validatedData['description'] ?? null,
                     'deadline' => $validatedData['deadline'] ?? null,
@@ -133,22 +135,50 @@ public function index()
  *     @OA\Response(response=404, description="Task not found")
  * )
  */
-    public function update(Request $request, Tasks $task)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+public function update(Request $request, Tasks $task)
+{
+    $validatedData = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'deadline' => 'nullable|date',
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'user_ids' => 'required|array',
+        'user_ids.*' => 'exists:users,id',
+    ]);
+
+    try {
+        \DB::beginTransaction();
+
+        // Update task details
+        $task->update([
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'] ?? null,
+            'deadline' => $validatedData['deadline'] ?? null,
+            'start_date' => $validatedData['start_date'] ?? null,
+            'end_date' => $validatedData['end_date'] ?? null,
         ]);
 
-        $task->update($request->only('title', 'description', 'start_date', 'end_date'));
+        //update assigned users
+        $task->users()->sync($validatedData['user_ids']);
 
-        //broadcast to assigned users
-        broadcast(new TaskUpdated($task))->toOthers();
+        \DB::commit();
 
-        return response()->json($task);
+        ///broadcast the updated task to others
+        broadcast(new TaskUpdated($task->load('users')))->toOthers();
+
+        return response()->json([
+            'message' => 'Task updated successfully',
+            'task' => $task->load('users'),
+        ]);
+    } catch (\Exception $e) {
+        \DB::rollBack();
+        \Log::error("Task update failed: " . $e->getMessage());
+
+        return response()->json(['error' => 'Failed to update task'], 500);
     }
+}
+
     // delete
     /**
  * @OA\Delete(
@@ -169,14 +199,14 @@ public function index()
  */
 public function destroy($id)
 {
-    $task = Tasks::with('assignedUsers')->find($id);
+    $task = Tasks::with('users')->find($id);
 
     if (!$task) {
         return response()->json(['message' => 'Task not found'], 404);
     }
 
     $taskId = $task->id;
-    $userIds = $task->assignedUsers->pluck('id')->toArray();
+    $userIds = $task->users->pluck('id')->toArray();
 
     $task->delete();
 
