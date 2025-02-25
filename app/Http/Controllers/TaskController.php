@@ -67,12 +67,12 @@ public function index()
                 'description' => 'nullable|string',
                 'deadline' => 'nullable|date',
                 'color' => 'nullable|string',
-                'user_ids' => 'required|array', // ✅ Ensure user_ids are required
+                'user_ids' => 'required|array',
                 'user_ids.*' => 'exists:users,id',
             ]);
         
             try {
-                \DB::beginTransaction(); // ✅ Start transaction to prevent partial saves
+                \DB::beginTransaction();
         
                 // Create the task
                 $task = Tasks::create([
@@ -83,10 +83,10 @@ public function index()
                     'created_by' => Auth::id(),
                 ]);
         
-                // Attach assigned users
+                // attach assigned users
                 $task->users()->sync($validatedData['user_ids']);
         
-                \DB::commit(); // ✅ Commit the transaction
+                \DB::commit();
         
                 broadcast(new TaskUpdated($task))->toOthers();
         
@@ -95,7 +95,7 @@ public function index()
                     'task' => $task->load('users'),
                 ], 201);
             } catch (\Exception $e) {
-                \DB::rollBack(); // ✅ Rollback if anything fails
+                \DB::rollBack();
                 \Log::error("Task creation failed: " . $e->getMessage());
                 return response()->json(['error' => 'Failed to create task'], 500);
             }
@@ -140,7 +140,7 @@ public function index()
 
         $task->update($request->only('title', 'description', 'deadline', 'color'));
 
-        // Broadcast to assigned users
+        //broadcast to assigned users
         broadcast(new TaskUpdated($task))->toOthers();
 
         return response()->json($task);
@@ -207,14 +207,14 @@ public function destroy($id)
 
     public function editing(Request $request, $id)
     {
-        $task = Tasks::with('users')->find($id); // ✅ Change 'assignedUsers' to 'users'
+        $task = Tasks::with('users')->find($id);
 
     if (!$task) {
         return response()->json(['message' => 'Task not found'], 404);
     }
 
     $username = $request->user()->name ?? 'Unknown User';
-    $userIds = $task->users->pluck('id')->toArray(); // ✅ Change 'assignedUsers' to 'users'
+    $userIds = $task->users->pluck('id')->toArray();
 
     broadcast(new TaskEditing($task->id, $username, $userIds))->toOthers();
 

@@ -14,7 +14,7 @@ class TaskDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $taskId;
-    public $userIds; // ✅ List of users to notify
+    public $userIds;
 
     public function __construct($taskId, $userIds)
     {

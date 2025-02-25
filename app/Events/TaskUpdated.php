@@ -19,7 +19,7 @@ class TaskUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(Tasks $task) // ✅ Accept $task in constructor
+    public function __construct(Tasks $task)
     {
         $this->task = $task;
     }
@@ -31,7 +31,7 @@ class TaskUpdated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('tasks.' . $this->task->id); // ✅ Correct channel
+        return new PrivateChannel('tasks.' . $this->task->id);
     }
 
     /**
