@@ -19,14 +19,17 @@ class TaskCreated implements ShouldBroadcast
 
     public function __construct(Tasks $task)
     {
-        $this->task = $task;
+        $this->task = $task->load('users');
         $this->assignedUsers = $task->users()->pluck('id')->toArray();
+        if (!in_array($task->created_by, $this->assignedUsers)) {
+            $this->assignedUsers[] = $task->created_by;
+        }
     }
 
     public function broadcastOn()
     {
         return collect($this->assignedUsers)->map(function ($userId) {
-            return new PrivateChannel('task.create.user.' . $userId);
+            return new Channel('task.create.user.' . $userId);
         })->toArray();
     }
 
@@ -34,4 +37,13 @@ class TaskCreated implements ShouldBroadcast
     {
         return 'task.created';
     }
+
+    public function broadcastWith()
+    {
+        return [
+            'task' => $this->task->toArray(),
+            'assignedUsers' => $this->assignedUsers, // Full user details
+        ];
+    }
 }
+

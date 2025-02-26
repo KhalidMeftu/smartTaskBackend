@@ -77,7 +77,7 @@ public function index()
             try {
                 \DB::beginTransaction();
         
-                /// Create the task
+                // Create the task
                 $task = Tasks::create([
                     'title' => $validatedData['title'],
                     'description' => $validatedData['description'] ?? null,
@@ -93,12 +93,12 @@ public function index()
         
                 \DB::commit();
         
-                // Notify assigned users
-                broadcast(new TaskCreated($task))->toOthers();
+                // Broadcast with users included
+                broadcast(new TaskCreated($task->load('users')))->toOthers();
         
                 return response()->json([
                     'message' => 'Task created successfully',
-                    'task' => $task->load('users'),
+                    'task' => $task,
                 ], 201);
             } catch (\Exception $e) {
                 \DB::rollBack();
@@ -106,6 +106,7 @@ public function index()
                 return response()->json(['error' => 'Failed to create task'], 500);
             }
         }
+        
         
 
     //update

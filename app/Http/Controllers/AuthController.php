@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -128,10 +129,12 @@ class AuthController extends Controller
         $request->validate([
             'fcm_token' => 'required|string',
         ]);
-
+    
         $user = Auth::user();
-        $user->update(['fcm_token' => $request->fcm_token]);
-
+    
+        $user->fcm_token = $request->fcm_token;
+        $user->save(); // Use save() instead of update() for better control
+    
         return response()->json(['message' => 'FCM token updated successfully']);
     }
     /**
