@@ -133,7 +133,7 @@ class AuthController extends Controller
         $user = Auth::user();
     
         $user->fcm_token = $request->fcm_token;
-        $user->save(); // Use save() instead of update() for better control
+        $user->save();
     
         return response()->json(['message' => 'FCM token updated successfully']);
     }

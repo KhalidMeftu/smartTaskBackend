@@ -92,6 +92,18 @@ public function index()
                 $task->users()->sync($validatedData['user_ids']);
         
                 \DB::commit();
+
+                $users = User::whereIn('users.id', $validatedData['user_ids'])
+                ->leftJoin('user_preferences', 'users.id', '=', 'user_preferences.user_id')
+                ->where(function ($query) {
+                    $query->whereNull('user_preferences.notifications')
+                          ->orWhere('user_preferences.notifications', true); 
+                })
+                ->whereNotNull('users.fcm_token') 
+                ->pluck('users.fcm_token');
+                if ($users->isNotEmpty()) {
+                    $this->sendFirebaseNotification($users, $task);
+                }
         
                 // Broadcast with users included
                 broadcast(new TaskCreated($task->load('users')))->toOthers();
@@ -362,5 +374,38 @@ public function destroy($id)
 }
 
 
+
+
+/**
+ * Send Firebase Notification
+ */
+private function sendFirebaseNotification($tokens, $task)
+{
+    $credentialsPath = config('firebase.credentials');
+
+    if (!$credentialsPath || !file_exists(base_path($credentialsPath))) {
+        throw new \Exception("Firebase credentials file not found: " . base_path($credentialsPath));
+    }
+
+    $firebase = (new Factory)->withServiceAccount(base_path($credentialsPath));
+    $messaging = $firebase->createMessaging();
+
+    $notification = Notification::create(
+        "New Task Assigned", 
+        "You have been assigned a new task: {$task->title}"
+    );
+
+    foreach ($tokens as $token) {
+        $message = CloudMessage::withTarget('token', $token)
+            ->withNotification($notification)
+            ->withData([
+                'task_id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description ?? '',
+            ]);
+
+        $messaging->send($message);
+    }
+}
 
 }
