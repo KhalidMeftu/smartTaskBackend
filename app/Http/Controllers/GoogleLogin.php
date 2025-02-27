@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Kreait\Firebase\Auth;
@@ -8,16 +8,18 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth as LaravelAuth;
 use Illuminate\Support\Facades\Hash;
 
-class GoogleLoginController extends Controller
+class GoogleLogin extends Controller
 {
     protected $firebaseAuth;
 
-    public function __construct(Auth $firebaseAuth)
+    public function __construct()
     {
-        $this->firebaseAuth = $firebaseAuth;
+       // $this->firebaseAuth = $firebaseAuth;
+       $factory = (new Factory)->withServiceAccount(config('firebase.credentials'));
+        $this->firebaseAuth = $factory->createAuth();
     }
 
-    /**
+ /**
      * Login or register a user using a Google ID token.
      *
      * @param Request $request
