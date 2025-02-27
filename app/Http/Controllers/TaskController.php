@@ -101,9 +101,9 @@ public function index()
                 })
                 ->whereNotNull('users.fcm_token') 
                 ->pluck('users.fcm_token');
-                //if ($users->isNotEmpty()) {
-                  //  $this->sendFirebaseNotification($users, $task);
-               // }
+                if ($users->isNotEmpty()) {
+                    $this->sendFirebaseNotification($users, $task);
+               }
         
                 // Broadcast with users included
                 broadcast(new TaskCreated($task->load('users')))->toOthers();
