@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPreferenceController;
+use App\Http\Controllers\GoogleLoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,7 @@ use App\Http\Controllers\UserPreferenceController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::post('/loginWithGoogle', [GoogleLoginController::class, 'loginWithGoogle']);
 Route::post('/register', [RegisterController::class, 'registerWithOptionalTwoFactor']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-2fa', [AuthController::class, 'verify2FA']);
@@ -58,5 +60,6 @@ Route::middleware('auth:sanctum','throttle:120,1')->group(function () {
     /// update prefs
     Route::post('/user/preferences', [UserPreferenceController::class, 'updateUserPreferences']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    
 
 });
