@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/register', [RegisterController::class, 'registerWithOptionalTwoFactor']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-2fa', [AuthController::class, 'verify2FA']);
-Route::middleware('auth:sanctum','throttle:60,1')->group(function () {
+Route::middleware('auth:sanctum','throttle:120,1')->group(function () {
     /// all tasks
     Route::get('/gettasks', [TaskController::class, 'index']);
     /// store tasks
@@ -49,11 +49,14 @@ Route::middleware('auth:sanctum','throttle:60,1')->group(function () {
     /// enable 2fa
     Route::post('/enable-2fa', [AuthController::class, 'enable2FA']);
     Route::post('/disable-2fa', [AuthController::class, 'disable2FA']);
+    /// logout user
+    Route::post('/logout',[AuthController::class,'logout']);
     /// user is editing
     Route::post('/tasks/{id}/editing', [TaskController::class, 'editing']);
     /// get prefs
     Route::get('/user/preferences', [UserPreferenceController::class, 'getUserPreferences']);
     /// update prefs
     Route::post('/user/preferences', [UserPreferenceController::class, 'updateUserPreferences']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
 });
