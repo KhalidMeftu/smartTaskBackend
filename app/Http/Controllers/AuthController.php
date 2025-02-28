@@ -201,6 +201,15 @@ class AuthController extends Controller
         return response()->json(['message' => '2FA has been disabled successfully']);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="User Logout",
+     *     tags={"Authentication"},
+     *     @OA\Response(response=200, description="Logout successful"),
+     *     @OA\Response(response=401, description="Invalid credentials token expired")
+     * )
+     */
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
