@@ -175,6 +175,23 @@
                 ]
             }
         },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User Logout",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful"
+                    },
+                    "401": {
+                        "description": "Invalid credentials token expired"
+                    }
+                }
+            }
+        },
         "/api/register": {
             "post": {
                 "tags": [
@@ -230,13 +247,13 @@
                 }
             }
         },
-        "/api/tasks": {
+        "/api/gettasks": {
             "get": {
                 "tags": [
                     "Tasks"
                 ],
                 "summary": "Get User's Tasks",
-                "operationId": "471d938a3bfaeb6fbd981d7c3e2728b0",
+                "operationId": "9528bbd01c6c890ac11f71704461e86b",
                 "responses": {
                     "200": {
                         "description": "List of tasks"
@@ -247,7 +264,9 @@
                         "sanctum": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/tasks": {
             "post": {
                 "tags": [
                     "Tasks"
@@ -501,6 +520,63 @@
                 ]
             }
         },
+        "/api/tasks/{task}/status": {
+            "patch": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update Task Status",
+                "operationId": "8f6820ff67133a6146bd43af53f2567b",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "ID of the task to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "description": "New status of the task",
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "inprogress",
+                                            "completed"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Task status updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -511,6 +587,129 @@
                 "responses": {
                     "200": {
                         "description": "List of users"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/user/preferences": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get User Preferences",
+                "operationId": "6bfb2507f977f5e8f2a1894e0eccee07",
+                "responses": {
+                    "200": {
+                        "description": "User preferences retrieved successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User Preferences",
+                "operationId": "6a8381ab92abe4f0a7289ba87ac03910",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "two_factor_auth": {
+                                        "description": "Enable or disable two-factor authentication",
+                                        "type": "boolean"
+                                    },
+                                    "theme_mode": {
+                                        "description": "Theme mode",
+                                        "type": "string",
+                                        "enum": [
+                                            "light",
+                                            "dark"
+                                        ]
+                                    },
+                                    "notifications": {
+                                        "description": "Enable or disable notifications",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/user/preferences/default": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create Default User Preferences",
+                "operationId": "140fd907fff957e853f9536bd7bed37b",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "two_factor_auth": {
+                                        "description": "Enable or disable two-factor authentication",
+                                        "type": "boolean"
+                                    },
+                                    "theme_mode": {
+                                        "description": "Theme mode",
+                                        "type": "string",
+                                        "enum": [
+                                            "light",
+                                            "dark"
+                                        ]
+                                    },
+                                    "notifications": {
+                                        "description": "Enable or disable notifications",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Default preferences created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 },
                 "security": [
@@ -537,6 +736,10 @@
         {
             "name": "Users",
             "description": "Users"
+        },
+        {
+            "name": "User",
+            "description": "User"
         }
     ]
 }
