@@ -350,7 +350,30 @@ public function destroy($id)
 
         return response()->json(['message' => 'Task marked as completed']);
     }
-
+/**
+ * @OA\Patch(
+ *     path="/api/tasks/{task}/status",
+ *     summary="Update Task Status",
+ *     tags={"Tasks"},
+ *     security={{"sanctum":{}}}, 
+ *     @OA\Parameter(
+ *         name="task",
+ *         in="path",
+ *         required=true,
+ *         description="ID of the task to update",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"status"},
+ *             @OA\Property(property="status", type="string", enum={"pending", "inprogress", "completed"}, description="New status of the task")
+ *         )
+ *     ),
+ *     @OA\Response(response=200, description="Task status updated successfully"),
+ *     @OA\Response(response=422, description="Validation error")
+ * )
+ */
     public function updateStatus(Request $request, Task $task)
 {
     $validatedData = $request->validate([
