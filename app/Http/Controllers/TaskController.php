@@ -103,7 +103,7 @@ public function index()
                 ->pluck('users.fcm_token');
                 if ($users->isNotEmpty()) {
                     $this->sendFirebaseNotification($users, $task);
-                }
+               }
         
                 // Broadcast with users included
                 broadcast(new TaskCreated($task->load('users')))->toOthers();
